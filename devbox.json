@@ -3,10 +3,16 @@
   "packages": [
     "kind@0.31.0",
     "kubernetes-helm@3.20.1",
-    "kubectl@1.35.3"
+    "kubectl@1.35.3",
+    "vals@0.43.7",
+    "git@2.54.0"
   ],
   "shell": {
-    "init_hook": [],
-    "scripts":   {}
+    "init_hook": [
+      "export PATH=\"$HOME/.local/bin:$HOME/.npm-global/bin:$PATH\"",
+      "[ -n \"$USE_VALS\" ] && eval \"$(vals env -export -f .env.vals.yaml)\" || true",
+      "[ -f .env ] && source .env || true"
+    ],
+    "scripts": {}
   }
 }
