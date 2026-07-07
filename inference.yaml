@@ -1,0 +1,37 @@
+apiVersion: modelplane.ai/v1alpha1
+kind: ModelDeployment
+metadata:
+  name: qwen-demo
+spec:
+  replicas: 1
+  engines:
+  - name: qwen
+    members:
+    - role: Standalone
+      nodeSelector:
+        devices:
+        - name: gpu
+          count: 3
+          selectors:
+          # Any L4 satisfies >= 20Gi. The selector matches against the capacity
+          # declared in the InferenceClass, not the pod's resource requests.
+          - cel: |
+              device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
+      template:
+        spec:
+          containers:
+          - name: engine
+            image: vllm/vllm-openai:v0.23.0
+            args:
+            - --model=Qwen/Qwen2.5-0.5B-Instruct
+            - --dtype=half
+---
+apiVersion: modelplane.ai/v1alpha1
+kind: ModelService
+metadata:
+  name: qwen
+spec:
+  endpoints:
+  - selector:
+      matchLabels:
+        modelplane.ai/deployment: qwen-demo

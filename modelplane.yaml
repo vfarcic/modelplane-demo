@@ -81,6 +81,9 @@ spec:
     configRef:
       name: provider-helm-modelplane
 ---
+# The Modelplane Crossplane Configuration. Installing it adds the Modelplane
+# APIs (InferenceGateway, InferenceClass, InferenceCluster, ModelDeployment,
+# ModelCache, ModelService) and the composition functions that reconcile them.
 apiVersion: pkg.crossplane.io/v1
 kind: Configuration
 metadata:
