@@ -1,2 +1,2 @@
 /aws-creds.conf
-/kubeconfig.yaml
+/kubeconfig*.yaml

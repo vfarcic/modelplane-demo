@@ -3,7 +3,7 @@ kind: ModelDeployment
 metadata:
   name: qwen-demo
 spec:
-  replicas: 1
+  replicas: 2
   engines:
   - name: qwen
     members:
@@ -11,12 +11,10 @@ spec:
       nodeSelector:
         devices:
         - name: gpu
-          count: 3
+          count: 1
           selectors:
-          # Any L4 satisfies >= 20Gi. The selector matches against the capacity
-          # declared in the InferenceClass, not the pod's resource requests.
           - cel: |
-              device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
+              device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("20Gi")) >= 0
       template:
         spec:
           containers:
