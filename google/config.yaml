@@ -1,11 +1,13 @@
-apiVersion: aws.m.upbound.io/v1beta1
+apiVersion: gcp.m.upbound.io/v1beta1
 kind: ClusterProviderConfig
 metadata:
   name: default
 spec:
+  # dot.nu renders the unique run's project ID before applying this manifest.
+  projectID: PROJECT_ID
   credentials:
     source: Secret
     secretRef:
       namespace: crossplane-system
-      name: aws-creds
+      name: gcp-creds
       key: credentials

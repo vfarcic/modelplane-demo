@@ -1,13 +1,14 @@
+# Optional single-cluster AWS example.
 apiVersion: modelplane.ai/v1alpha1
 kind: InferenceClass
 metadata:
   name: l4-1x-g6
 spec:
-  description: "EKS g6.xlarge, 1x NVIDIA L4"
+  description: "EKS g6.2xlarge, 1x NVIDIA L4"
   provisioning:
     provider: EKS
     eks:
-      instanceType: g6.xlarge
+      instanceType: g6.2xlarge
       diskSizeGb: 50
       accelerator:
         type: nvidia-l4
@@ -35,10 +36,11 @@ spec:
     eks:
       region: us-east-1
   nodePools:
-  - name: gpu-l4
+  - name: gpu-l4-2xlarge
     className: l4-1x-g6
     nodeCount: 1
     minNodeCount: 1
     maxNodeCount: 1
     zones:
-    - us-east-1b
+    - us-east-1a
+    - us-east-1c

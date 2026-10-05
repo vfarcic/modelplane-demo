@@ -1,2 +1,6 @@
 /aws-creds.conf
 /kubeconfig*.yaml
+/.env
+/kind.yaml
+/.modelplane-state.json
+/gcp-creds.json

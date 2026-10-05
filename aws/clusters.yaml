@@ -1,3 +1,4 @@
+# AWS fleet. GPU capacity varies by zone and instance size.
 apiVersion: modelplane.ai/v1alpha1
 kind: InferenceCluster
 metadata:
@@ -10,13 +11,14 @@ spec:
     eks:
       region: us-east-1
   nodePools:
-  - name: gpu-l4
+  - name: gpu-l4-2xlarge
     className: l4-1x-g6
     nodeCount: 1
     minNodeCount: 1
     maxNodeCount: 1
     zones:
-    - us-east-1b
+    - us-east-1a
+    - us-east-1c
 ---
 apiVersion: modelplane.ai/v1alpha1
 kind: InferenceCluster
@@ -30,13 +32,14 @@ spec:
     eks:
       region: us-west-2
   nodePools:
-  - name: gpu-l40s
-    className: l4-1x-g6
+  - name: gpu-l40s-2xlarge
+    className: l40s-1x-g6e
     nodeCount: 1
     minNodeCount: 1
     maxNodeCount: 1
     zones:
-    - us-west-2a
+    - us-west-2b
+    - us-west-2c
 ---
 apiVersion: modelplane.ai/v1alpha1
 kind: InferenceCluster
@@ -50,11 +53,11 @@ spec:
     eks:
       region: eu-central-1
   nodePools:
-  - name: gpu-l40s
+  - name: gpu-l40s-2xlarge
     className: l40s-1x-g6e
     nodeCount: 1
     minNodeCount: 1
     maxNodeCount: 1
     zones:
-    - eu-central-1a
-
+    - eu-central-1b
+    - eu-central-1c

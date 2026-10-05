@@ -1,13 +1,14 @@
+# AWS hardware recipes.
 apiVersion: modelplane.ai/v1alpha1
 kind: InferenceClass
 metadata:
   name: l4-1x-g6
 spec:
-  description: "EKS g6.xlarge, 1x NVIDIA L4"
+  description: "EKS g6.2xlarge, 1x NVIDIA L4"
   provisioning:
     provider: EKS
     eks:
-      instanceType: g6.xlarge
+      instanceType: g6.2xlarge
       diskSizeGb: 50
       accelerator:
         type: nvidia-l4
@@ -28,11 +29,11 @@ kind: InferenceClass
 metadata:
   name: l40s-1x-g6e
 spec:
-  description: "EKS g6e.xlarge, 1x NVIDIA L40S"
+  description: "EKS g6e.2xlarge, 1x NVIDIA L40S"
   provisioning:
     provider: EKS
     eks:
-      instanceType: g6e.xlarge
+      instanceType: g6e.2xlarge
       diskSizeGb: 100
       accelerator:
         type: nvidia-l40s

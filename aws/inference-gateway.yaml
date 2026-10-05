@@ -1,0 +1,7 @@
+# Client-facing gateway on the AWS fleet.
+apiVersion: modelplane.ai/v1alpha1
+kind: InferenceGateway
+metadata:
+  name: default
+spec:
+  clusterName: eks-us-east

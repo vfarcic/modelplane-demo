@@ -1,8 +1,8 @@
 # Modelplane prerequisites. Apply once after installing Crossplane.
 #
+# Based on the Modelplane v0.5.0 installation prerequisites.
 # These resources grant Crossplane and provider-helm the permissions
-# needed to compose Gateway API, MetalLB, and Service/EndpointSlice
-# routing resources. They cannot be self-composed because Crossplane
+# Modelplane's compositions need. They cannot be self-composed because Crossplane
 # needs the permissions before it can compose anything.
 ---
 apiVersion: v1
@@ -20,23 +20,8 @@ rules:
 - apiGroups: [""]
   resources: ["namespaces"]
   verbs: ["*"]
-# Selectorless Service plus EndpointSlice composed by ModelEndpoint to route
-# the control plane gateway to a remote model endpoint.
-- apiGroups: [""]
-  resources: ["services"]
-  verbs: ["*"]
-- apiGroups: ["discovery.k8s.io"]
-  resources: ["endpointslices"]
-  verbs: ["*"]
-- apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["gateways", "gatewayclasses", "httproutes"]
-  verbs: ["*"]
-- apiGroups: ["gateway.envoyproxy.io"]
-  resources: ["backends"]
-  verbs: ["*"]
-- apiGroups: ["metallb.io"]
-  resources: ["ipaddresspools", "l2advertisements"]
-  verbs: ["*"]
+# Usages order teardown between composed resources. Workload resources
+# are managed remotely through provider-kubernetes and provider-helm.
 - apiGroups: ["protection.crossplane.io"]
   resources: ["usages"]
   verbs: ["*"]
@@ -53,7 +38,7 @@ spec:
       name: provider-helm-modelplane
 ---
 # Grant provider-helm cluster-admin. It installs full Helm charts
-# (MetalLB, Envoy Gateway, LeaderWorkerSet, etc.) that create arbitrary
+# (Envoy Gateway, LeaderWorkerSet, Grove, etc.) that create arbitrary
 # resource types across namespaces.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -81,6 +66,34 @@ spec:
     configRef:
       name: provider-helm-modelplane
 ---
+# Keep composed Secret contents out of provider-kubernetes Object status.
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-kubernetes-modelplane
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          containers:
+          - name: package-runtime
+            args:
+            - --sanitize-secrets
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: ImageConfig
+metadata:
+  name: provider-kubernetes-modelplane
+spec:
+  matchImages:
+  - type: Prefix
+    prefix: xpkg.upbound.io/upbound/provider-kubernetes
+  runtime:
+    configRef:
+      name: provider-kubernetes-modelplane
+---
 # The Modelplane Crossplane Configuration. Installing it adds the Modelplane
 # APIs (InferenceGateway, InferenceClass, InferenceCluster, ModelDeployment,
 # ModelCache, ModelService) and the composition functions that reconcile them.
@@ -89,4 +102,4 @@ kind: Configuration
 metadata:
   name: modelplane
 spec:
-  package: xpkg.upbound.io/modelplane/modelplane:v0.1.0
+  package: xpkg.upbound.io/modelplane/modelplane:v0.5.0

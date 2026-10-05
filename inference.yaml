@@ -4,25 +4,28 @@ metadata:
   name: qwen-demo
 spec:
   replicas: 2
-  engines:
-  - name: qwen
-    members:
-    - role: Standalone
-      nodeSelector:
-        devices:
-        - name: gpu
-          count: 1
-          selectors:
-          - cel: |
-              device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("20Gi")) >= 0
-      template:
-        spec:
-          containers:
-          - name: engine
-            image: vllm/vllm-openai:v0.23.0
-            args:
-            - --model=Qwen/Qwen2.5-0.5B-Instruct
-            - --dtype=half
+  template:
+    spec:
+      engines:
+      - name: qwen
+        members:
+        - role: Standalone
+          nodeSelector:
+            devices:
+            - name: gpu
+              count: 1
+              selectors:
+              - cel: |
+                  device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("20Gi")) >= 0
+          template:
+            spec:
+              containers:
+              - name: engine
+                image: vllm/vllm-openai:v0.23.0
+                args:
+                - --model=Qwen/Qwen2.5-0.5B-Instruct
+                - --served-model-name=$(MODELPLANE_SERVED_MODEL_NAME)
+                - --dtype=half
 ---
 apiVersion: modelplane.ai/v1alpha1
 kind: ModelService
@@ -30,6 +33,7 @@ metadata:
   name: qwen
 spec:
   endpoints:
-  - selector:
+  - name: qwen-demo
+    selector:
       matchLabels:
         modelplane.ai/deployment: qwen-demo
