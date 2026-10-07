@@ -100,7 +100,7 @@ def --env "main destroy" [] {
     if $state.provider == "google" and $state.project_created and ($state.project_id | is-not-empty) {
         main delete google_project $state.project_id
     }
-    rm --force $MODELPLANE_STATE gcp-creds.json
+    rm --force $MODELPLANE_STATE gcp-creds.json .env kind.yaml
     print "The Modelplane fleet and local control plane have been removed."
 
 }
