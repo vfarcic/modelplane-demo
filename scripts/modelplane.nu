@@ -3,6 +3,7 @@
 # Modelplane-demo-specific orchestration. Generic helpers come from nu-scripts.
 const MODELPLANE_ROOT = path self | path dirname | path dirname
 const MODELPLANE_STATE = $MODELPLANE_ROOT | path join ".modelplane-state.json"
+const CONTROL_PLANE_ZONE = "us-east1-b"
 
 def "modelplane state" [] {
     if not ($MODELPLANE_STATE | path exists) { error make {msg: "No saved run. Execute ./dot.nu setup first."} }
@@ -37,9 +38,12 @@ def --env "modelplane context" [] {
     let state = (modelplane state)
     $env.PROVIDER = $state.provider
     $env.KUBECONFIG = $MODELPLANE_ROOT | path join "kubeconfig-modelplane.yaml"
+    let expected = if ($state.control_plane? | default "kind") == "gke" {
+        $"gke_($state.project_id)_($CONTROL_PLANE_ZONE)_modelplane"
+    } else { "kind-modelplane" }
     let context = (main capture command kubectl ["config" "current-context"])
-    if $context != "kind-modelplane" {
-        error make {msg: $"Expected kind-modelplane in ($env.KUBECONFIG); found ($context)."}
+    if $context != $expected {
+        error make {msg: $"Expected ($expected) in ($env.KUBECONFIG); found ($context)."}
     }
 
 }

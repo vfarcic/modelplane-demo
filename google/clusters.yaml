@@ -16,7 +16,7 @@ spec:
     minNodeCount: 1
     maxNodeCount: 1
     zones:
-    - us-central1-a
+    - us-central1-c
 ---
 apiVersion: modelplane.ai/v1alpha1
 kind: InferenceCluster

@@ -9,7 +9,7 @@
     "git@2.55.0",
     "jq@1.8.2",
     "curl@8.22.0",
-    "google-cloud-sdk@583.0.0"
+    "path:gcloud#google-cloud-sdk"
   ],
   "shell": {
     "init_hook": [

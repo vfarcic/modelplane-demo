@@ -72,10 +72,22 @@ def "main create google_credentials" [
         roles/iam.serviceAccountUser
         roles/resourcemanager.projectIamAdmin
     ] {
-        main run command gcloud [
-            "projects" "add-iam-policy-binding" $project
-            "--member" $"serviceAccount:($account)" "--role" $role "--condition=None" "--quiet" "--format=none"
-        ]
+        # New service accounts propagate slowly and concurrent policy edits
+        # conflict on the ETag, so retry the whole read-modify-write.
+        mut binding_attempts = 0
+        loop {
+            let binding = (
+                gcloud projects add-iam-policy-binding $project
+                    --member $"serviceAccount:($account)" --role $role
+                    --condition=None --quiet --format=none | complete
+            )
+            if $binding.exit_code == 0 { break }
+            if $binding_attempts >= 10 {
+                error make {msg: $"Could not grant ($role) to ($account): ($binding.stderr)"}
+            }
+            $binding_attempts = $binding_attempts + 1
+            sleep (5sec * $binding_attempts)
+        }
     }
     if ($key_file | path exists) {
         let key = (open $key_file)

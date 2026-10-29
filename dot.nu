@@ -20,6 +20,7 @@ def --env "main setup" [
     provider: string = ""  # aws or google; prompts when omitted
     --resume              # Resume the saved run instead of creating a new project
     --billing-account = ""
+    --control-plane = ""  # kind (default) or gke; gke requires the google provider
 ] {
 
     cd $MODELPLANE_ROOT
@@ -35,9 +36,13 @@ def --env "main setup" [
         }
         let choice = if ($provider | is-empty) { main get provider --providers [aws google] } else { $provider }
         if not ($choice in ["aws" "google"]) { error make {msg: "Choose aws or google."} }
-        {provider: $choice, project_id: "", project_created: false} | to json | save --force $MODELPLANE_STATE
+        let plane = if ($control_plane | is-empty) { "kind" } else { $control_plane }
+        if not ($plane in ["kind" "gke"]) { error make {msg: "Choose kind or gke for the control plane."} }
+        if $plane == "gke" and $choice != "google" { error make {msg: "A GKE control plane requires the google provider."} }
+        {provider: $choice, control_plane: $plane, project_id: "", project_created: false} | to json | save --force $MODELPLANE_STATE
         $choice
     }
+    let plane = ((modelplane state).control_plane? | default "kind")
     $env.PROVIDER = $selected
     $"export PROVIDER=($selected)\n" | save --append .env
     main check --provider $selected
@@ -53,11 +58,20 @@ def --env "main setup" [
         let credential_file = (main create google_credentials $project --service-account modelplane-control)
     }
 
-    print $"\n(ansi green_bold)Preparing the local control plane...(ansi reset)\n"
-    (
-        main create kubernetes kind --name modelplane --enable-ingress false
-            --kind-image $KIND_IMAGE --reuse true
-    )
+    if $plane == "gke" {
+        print $"\n(ansi green_bold)Preparing the GKE control plane...(ansi reset)\n"
+        (
+            main create kubernetes google --name modelplane --auth false
+                --node-size medium --min-nodes 2 --max-nodes 4
+                --zone $CONTROL_PLANE_ZONE
+        )
+    } else {
+        print $"\n(ansi green_bold)Preparing the local control plane...(ansi reset)\n"
+        (
+            main create kubernetes kind --name modelplane --enable-ingress false
+                --kind-image $KIND_IMAGE --reuse true
+        )
+    }
     (
         main apply crossplane --version $CROSSPLANE_VERSION
             --default-activations [] --dependency-version-upgrades true
@@ -95,7 +109,12 @@ def --env "main destroy" [] {
     if ($kubeconfig | path exists) {
         modelplane context
         main delete modelplane_fleet
-        main destroy kubernetes kind --name modelplane
+        if ($state.control_plane? | default "kind") == "gke" {
+            $env.PROJECT_ID = $state.project_id
+            main destroy kubernetes google --name modelplane --delete_project false
+        } else {
+            main destroy kubernetes kind --name modelplane
+        }
     }
     if $state.provider == "google" and $state.project_created and ($state.project_id | is-not-empty) {
         main delete google_project $state.project_id
